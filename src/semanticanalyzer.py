@@ -34,6 +34,7 @@ class SemanticAnalyzer:
     with open(filename, 'r') as file:
       self.file = file.read()
       self.file = re.sub(r'[\n\t]+', '', self.file) # Esto quita los carácteres '\n' y '\t'.
+      self.file = re.sub(r' {2,}', ' ', self.file) # Elimina el exceso de espacios.
 
   def parsestatement(self, string, line):
     if string is None:
@@ -80,6 +81,8 @@ class SemanticAnalyzer:
     elif s1 not in self.reserved:
       result += self.parsestatement(s1, line)
 
+    self.table = self.table.newscope()
+
     result += self.parsestatement(s2, line)
     return result
 
@@ -90,23 +93,39 @@ class SemanticAnalyzer:
     while(len(source) > 0):
       # Paso 1. Verificar si es más largo el string hasta el siguiente ';' o
       # hasta el siguiente '{'.
-      extracted_string_1 = source.split(';')[0]
-      extracted_string_1 = extracted_string_1.strip()
-      extracted_string_2 = source.split('{')[0]
-      extracted_string_2 = extracted_string_2.strip()
+
+      len1 = -1
+      len2 = -1
+      len3 = -1
       
-      if len(extracted_string_1) < len(extracted_string_2):
-        source = source[len(extracted_string_1) + 1:]
-        result += self.parsestatement(extracted_string_1, 'x')
+      v = []
+
+      if ';' in source:
+        len1 = source.index(';')
+        v += [len1]
+      if '{' in source:
+        len2 = source.index('{')
+        v += [len2]
+      if '}' in source:
+        len3 = source.index('}')
+        v += [len3]
+      
+      this = min(v)
+
+      if this == len1:
+        result += self.parsestatement(source[:this].strip(),'x')
+      elif this == len2:
+        result += self.parsefunction(source[:this].strip(),'x')
       else:
-        source = source[len(extracted_string_2) + 1:]
-        result += self.parsefunction(extracted_string_2, 'x')
+        self.table = self.table.getfather()
+        
+      source = source[this + 1:]
 
     self.table = SymbolTable()
+    self.scope = None
     return re.sub(r'^\n', '', result)
 
 if __name__ == "__main__":
   sa = SemanticAnalyzer()
   sa.loadfile('../data/test2.txt')
-  print(sa.file)
   print(sa.parse())
