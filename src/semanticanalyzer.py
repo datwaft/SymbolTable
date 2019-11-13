@@ -35,6 +35,7 @@ class SemanticAnalyzer:
 
   def getErrors(self):
     def parse(owner, string, line = 0):
+      print(string)
       first = re.search(r'^[A-Za-z]+', string)
       if first is None:
         return ""
@@ -47,10 +48,10 @@ class SemanticAnalyzer:
       else:
         if first == 'return':
           second = re.search(r'return ([A-Za-z]+)', string).group(1)
-          if second not in self.table:
-            return f"\nError - Línea {line}: '{first}' no está declarado."
           if owner is None:
             return f"\nError - Línea {line}: retorno a nivel global."
+          if second not in self.table:
+            return f"\nError - Línea {line}: '{first}' no está declarado."
           if self.table[second].type != owner.type:
             return (f"\nError - Línea {line}: valor de retorno no coincide con"
                      " la declaración de '{owner.name}'.")
@@ -80,3 +81,8 @@ class SemanticAnalyzer:
     self.table = SymbolTable()
     return re.sub(r'^\n', '', result)
 
+if __name__ == "__main__":
+  sa = SemanticAnalyzer()
+  sa.loadfile('../data/test2.txt')
+  print(sa.file)
+  print(sa.getErrors())
