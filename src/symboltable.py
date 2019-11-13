@@ -36,14 +36,14 @@ class SymbolTable:
     self._table = dict()
     self._father = None
   
-  def getSymbols(self):
+  def symbols(self):
     l = list(self._table.values())
     if self._father is not None:
-      l = self._father.getSymbols() + l
+      l = self._father.symbols() + l
     return l
 
   def __iter__(self):
-    for i in self.getSymbols():
+    for i in self.symbols():
       yield i
 
   def insert(self, symbol, symboltype):
@@ -62,22 +62,6 @@ class SymbolTable:
         self._table.pop(symbol)
       else:
         self._father.delete(symbol)
-
-  def changeType(self, symbol, symboltype):
-    """
-    Si el elemento está presente le cambia el tipo.
-    """
-    if symbol in self:
-      self.lookup(symbol).type = symboltype
-
-  def getType(self, symbol):
-    """
-    Si el elemento está presente devuelve su tipo.
-    Si no devuelve None.
-    """
-    if symbol in self:
-      return self.lookup(symbol).type
-    return None
 
   def lookup(self, symbol):
     """
@@ -102,7 +86,7 @@ class SymbolTable:
       return key in self._table or key in self._father
     return key in self._table
 
-  def makeScope(self):
+  def newscope(self):
     """
     Crea un nuevo 'scope'.
     """
@@ -110,7 +94,7 @@ class SymbolTable:
     aux._father = self
     return aux
 
-  def getPreviousScope(self):
+  def getfather(self):
     """
     Devuelve el 'scope' anterior, sirve para eliminar scopes.
     """
