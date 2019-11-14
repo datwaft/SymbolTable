@@ -29,12 +29,11 @@ class SemanticAnalyzer:
     self.expr['beg'] = re.compile(r'^[A-Za-z]+')
     self.expr['2nd'] = re.compile(r'^[A-Za-z]+ ([A-Za-z]+)')
     self.expr['()'] = re.compile(r'(.+) ?\((.+)\)')
+    self.expr['nl'] = re.compile(r'\n+')
 
   def loadfile(self, filename):
     with open(filename, 'r') as file:
       self.file = file.read()
-      self.file = re.sub(r'[\n\t]+', '', self.file) # Esto quita los carácteres '\n' y '\t'.
-      self.file = re.sub(r' {2,}', ' ', self.file) # Elimina el exceso de espacios.
 
   def parsestatement(self, string, line):
     if string is None:
@@ -89,6 +88,10 @@ class SemanticAnalyzer:
   def parse(self):
     result = ""
     source = self.file
+    source = re.sub(r'\t+', '', source) # Esto quita los carácteres \t'.
+    source = re.sub(r' {2,}', ' ', source) # Elimina el exceso de espacios.
+
+    line = 1
 
     while(len(source) > 0):
       # Paso 1. Verificar si es más largo el string hasta el siguiente ';' o
@@ -111,11 +114,16 @@ class SemanticAnalyzer:
         v += [len3]
       
       this = min(v)
+    
+      if '\n' in source[:this]:
+        line += source[:this].count('\n')
 
       if this == len1:
-        result += self.parsestatement(source[:this].strip(),'x')
+        result += self.parsestatement(self.expr['nl'].sub('',
+          source[:this].strip()), line)
       elif this == len2:
-        result += self.parsefunction(source[:this].strip(),'x')
+        result += self.parsefunction(self.expr['nl'].sub('',
+          source[:this].strip()), line)
       else:
         self.table = self.table.getfather()
         
@@ -123,9 +131,18 @@ class SemanticAnalyzer:
 
     self.table = SymbolTable()
     self.scope = None
-    return re.sub(r'^\n', '', result)
+    # Para eliminar las línea repetidas.
+    l = list(dict.fromkeys(re.sub(r'^\n', '', result).split('\n')))
+    return ''.join(s + '\n' for s in l)
 
 if __name__ == "__main__":
   sa = SemanticAnalyzer()
   sa.loadfile('../data/test2.txt')
-  print(sa.parse())
+
+  v = sa.file.split('\n')
+  for i,line in enumerate(v):
+    print(str(i) + "│", line)
+  print('')
+  result = sa.parse()
+  print("No ha habido ningún error." if result == "" else result)
+
