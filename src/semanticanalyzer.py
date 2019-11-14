@@ -10,6 +10,7 @@ class SemanticAnalyzer:
   def __init__(self, string = None):
     self.file = string
     self.table = SymbolTable()
+    self.scopestack = []
     self.scope = None
     self.types = {'void', 'int', 'float', 'string'}
     self.reserved = {'if', 'while'}
@@ -35,6 +36,16 @@ class SemanticAnalyzer:
   def loadfile(self, filename):
     with open(filename, 'r') as file:
       self.file = file.read()
+
+  def setscope(self, scope):
+    self.scopestack.append(self.scope)
+    self.scope = scope
+
+  def retscope(self):
+    if len(self.scopestack) == 0:
+      self.scope = None
+    else:
+      self.scope = self.scopestack.pop()
 
   def parsestatement(self, string, line):
     if string is None:
@@ -77,9 +88,11 @@ class SemanticAnalyzer:
         result += self.err['dcl'].format(line, sn)
       else:
         self.table.insert(sn, st)
-        self.scope = self.table[sn]
+        self.setscope(self.table[sn])
     elif s1 not in self.reserved:
       result += self.parsestatement(s1, line)
+    else:
+      self.setscope(self.scope)
 
     self.table = self.table.newscope()
 
@@ -126,6 +139,7 @@ class SemanticAnalyzer:
         result += self.parsefunction(self.expr['nl'].sub('',
           source[:this].strip()), line)
       else:
+        self.retscope()
         self.table = self.table.getfather()
         
       source = source[this + 1:]
