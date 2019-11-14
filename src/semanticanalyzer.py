@@ -1,3 +1,4 @@
+import sys
 import re
 from symboltable import SymbolTable
 
@@ -50,7 +51,7 @@ class SemanticAnalyzer:
             if self.scope is None:
               result += self.err['gret'].format(line)
             elif self.scope.type != self.table[e].type:
-              result += self.err['ret'].format(line, e)
+              result += self.err['ret'].format(line, self.scope.name)
           else:
             result += self.err['dcl'].format(line, e)
         else:
@@ -133,16 +134,27 @@ class SemanticAnalyzer:
     self.scope = None
     # Para eliminar las línea repetidas.
     l = list(dict.fromkeys(re.sub(r'^\n', '', result).split('\n')))
-    return ''.join(s + '\n' for s in l)
+    res = ''.join(s + '\n' for s in l)
+    return re.sub(r'\n$', '', res)
 
 if __name__ == "__main__":
-  sa = SemanticAnalyzer()
-  sa.loadfile('../data/test2.txt')
+  if len(sys.argv) > 1:
+    file_name = sys.argv[1]
+  else:
+    file_name = '../data/test2.txt'
+    print("Se puede introducir el nombre del archivo como parámetro.")
+  print("Archivo seleccionado: ", file_name)
 
-  v = sa.file.split('\n')
-  for i,line in enumerate(v):
-    print(str(i) + "│", line)
-  print('')
-  result = sa.parse()
-  print("No ha habido ningún error." if result == "" else result)
+  sa = SemanticAnalyzer()
+  try:
+    sa.loadfile(file_name)
+    v = sa.file.split('\n')
+    print('──┐')
+    for i,line in enumerate(v):
+      print(('0' if i+1 < 10 else '') + str(i+1) + "│" + line)
+    print('──┘')
+    result = sa.parse()
+    print("No ha habido ningún error." if result == "" else result)
+  except:
+    print("Nombre de archivo invalido")
 

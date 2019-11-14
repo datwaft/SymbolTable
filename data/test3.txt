@@ -1,0 +1,10 @@
+void x;
+int funcion(float v, string n){
+	if(v > 0.0){
+		n = "Mayor";
+		x = x + 5;
+		int z = 3;
+	}
+	return z;
+}
+return x;
