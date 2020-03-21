@@ -28,11 +28,11 @@ class Entry:
     Utilizado para imprimir la entrada de la tabla en pantalla.
     """
     return str(self)
-    
+
 class SymbolTable:
   """
   Una tabla de símbolos.
-  
+
   Sirve para almacenar entradas de la tabla de símbolos.
 
   Tiene un padre para que se pueda derivar una tabla de símbolos de otra y que
@@ -50,7 +50,7 @@ class SymbolTable:
     """
     self._table = dict()
     self._father = None
-  
+
   def symbols(self):
     """
     Devuelve una lista de entadas de la tabla, tanto las de la tabla actual como
@@ -109,7 +109,7 @@ class SymbolTable:
     Sobrecarga para poder hacer SymbolTable['EntryName'].
     """
     return self.lookup(key)
-  
+
   def __contains__(self, key):
     """
     Dice si un elemento está presente en la tabla, puede estar en el padre o en
